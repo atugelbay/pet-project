@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"pet-project/internal/config"
+	"pet-project/internal/router"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,9 +14,9 @@ import (
 )
 
 func main() {
-	port := getenv("PORT", "8080")
+	port := config.Getenv("PORT", "8080")
 
-	cfg := loadConfig()
+	cfg := config.LoadConfig()
 
 	//postgres connection
 	dsn := fmt.Sprintf(
@@ -24,13 +26,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, dsn)
+	dbpool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		log.Fatalf("pgxpool.New error: %v", err)
 	}
-	defer pool.Close()
+	defer dbpool.Close()
 
-	if err := pool.Ping(ctx); err != nil {
+	if err := dbpool.Ping(ctx); err != nil {
 		log.Fatalf("Postgres ping error: %v", err)
 	}
 	log.Println("Connected to Postgres")
@@ -48,11 +50,11 @@ func main() {
 	log.Println("Connected to Redis")
 
 	//server
-	http.HandleFunc("/", Handler)
-	log.Printf("Server deployed on http://localhost:%s\n", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatalf("Failed to start server: %v\n", err)
-	}
+	r := router.NewRouter(dbpool)
+
+	addr := ":" + port
+	log.Printf("Server listening on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, r))
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {

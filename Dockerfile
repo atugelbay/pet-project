@@ -1,10 +1,10 @@
 #Stage "builder"
 FROM golang:1.24-alpine AS builder
 WORKDIR /app
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go mod tidy
 COPY . .
-RUN go build -o server
+RUN go build -o server ./cmd/server
 
 #Stage "final"
 FROM alpine:latest
