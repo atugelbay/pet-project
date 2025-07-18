@@ -4,7 +4,7 @@ WORKDIR /app
 COPY go.mod ./
 RUN go mod tidy
 COPY . .
-RUN go build -o server main.go
+RUN go build -o server
 
 #Stage "final"
 FROM alpine:latest
