@@ -50,17 +50,9 @@ func main() {
 	log.Println("Connected to Redis")
 
 	//server
-	r := router.NewRouter(dbpool)
+	r := router.NewRouter(dbpool, rdb)
 
 	addr := ":" + port
 	log.Printf("Server listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, r))
-}
-
-func Handler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-	fmt.Fprintln(w, "Hello, Docker")
 }

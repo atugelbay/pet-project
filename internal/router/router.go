@@ -7,16 +7,21 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
-func NewRouter(db *pgxpool.Pool) http.Handler {
+func NewRouter(db *pgxpool.Pool, rdb *redis.Client) http.Handler {
 	r := chi.NewRouter()
+	r.Get("/", handlers.Index)
+	//REST
 	r.Post("/users", handlers.CreateUser(db))
-	r.Post("/chats", handlers.CreateChat(db))
 
-	// сообщения
+	//сообщения
+	r.Post("/chats", handlers.CreateChat(db))
 	r.Get("/chats/{chatID}/messages", handlers.ListMessages(db))
-	r.Post("/chats/{chatID}/messages", handlers.SendMessage(db))
+	r.Post("/chats/{chatID}/messages", handlers.SendMessage(db, rdb))
+
+	r.Get("/ws/{chatID}", handlers.WSHandler(rdb))
 
 	//посты
 	r.Post("/posts", handlers.CreatePost(db))

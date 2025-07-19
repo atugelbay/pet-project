@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 func ListMessages(db *pgxpool.Pool) http.HandlerFunc {
@@ -59,7 +61,7 @@ func ListMessages(db *pgxpool.Pool) http.HandlerFunc {
 }
 
 // SendMessage — заглушка для POST /chats/{chatID}/messages
-func SendMessage(db *pgxpool.Pool) http.HandlerFunc {
+func SendMessage(db *pgxpool.Pool, rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//Парсим chatID
 		chatIDStr := chi.URLParam(r, "chatID")
@@ -103,6 +105,13 @@ func SendMessage(db *pgxpool.Pool) http.HandlerFunc {
 			log.Printf("[SendMessage] DB insert error: %v", err)
 			http.Error(w, "db error", http.StatusBadRequest)
 			return
+		}
+
+		//redis публикация
+		payload, _ := json.Marshal(msg)
+		channel := fmt.Sprintf("chat:%d", chatID)
+		if err := rdb.Publish(r.Context(), channel, payload).Err(); err != nil {
+			log.Printf("WS publish error: %v", err)
 		}
 
 		//отдаем ответ с JSON
