@@ -19,6 +19,7 @@ export default function ChatListPage() {
 
   return (
     <div>
+      <Link to="/" style={{ display: 'block', marginTop: 20 }}>← На главную</Link>
       <h1>Список чатов</h1>
       <ul>
         {chats.map(c => (
@@ -30,7 +31,6 @@ export default function ChatListPage() {
           </li>
         ))}
       </ul>
-      <Link to="/" style={{ display: 'block', marginTop: 20 }}>← На главную</Link>
     </div>
   )
 }
