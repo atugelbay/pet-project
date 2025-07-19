@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// CreateChat — заглушка для POST /chats
 func CreateChat(db *pgxpool.Pool) http.HandlerFunc {
 	type reqBody struct {
 		Title   string `json:"title"`

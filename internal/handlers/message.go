@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -60,6 +61,55 @@ func ListMessages(db *pgxpool.Pool) http.HandlerFunc {
 // SendMessage — заглушка для POST /chats/{chatID}/messages
 func SendMessage(db *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "SendMessage not implemented", http.StatusNotImplemented)
+		//Парсим chatID
+		chatIDStr := chi.URLParam(r, "chatID")
+		chatID, err := strconv.Atoi(chatIDStr)
+		if err != nil {
+			log.Printf("[SendMessage] invalid chatID %q: %v", chatIDStr, err)
+			http.Error(w, "Invalid chatId", http.StatusBadRequest)
+			return
+		}
+
+		//Декодируем тело запроса
+		var req struct {
+			SenderID int    `json:"sender_id"`
+			Content  string `json:"content"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			log.Printf("[SendMessage] JSON decode error: %v", err)
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		if req.Content == "" {
+			log.Printf("[SendMessage] empty content in request: %+v", req)
+			http.Error(w, "Content required", http.StatusBadRequest)
+			return
+		}
+
+		//ВСтавляем в messages и получаем id+created_at
+		row := db.QueryRow(
+			r.Context(),
+			`INSERT INTO messages (chat_id, sender_id, content)
+             VALUES ($1, $2, $3)
+             RETURNING id, created_at`,
+			chatID, req.SenderID, req.Content,
+		)
+		var msg models.Message
+		msg.ChatID = chatID
+		msg.SenderID = req.SenderID
+		msg.Content = req.Content
+
+		if err := row.Scan(&msg.ID, &msg.CreatedAt); err != nil {
+			log.Printf("[SendMessage] DB insert error: %v", err)
+			http.Error(w, "db error", http.StatusBadRequest)
+			return
+		}
+
+		//отдаем ответ с JSON
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(msg); err != nil {
+			log.Printf("[SendMessage] JSON encode error: %v", err)
+		}
 	}
 }
