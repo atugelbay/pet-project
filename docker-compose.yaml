@@ -9,7 +9,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./migrations:/docker-entrypoint-initdb.d/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -34,6 +34,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_USER
+      - DB_PASSWORD
+      - DB_NAME
+      - DB_HOST
+      - DB_PORT
+      - REDIS_HOST
+      - REDIS_PORT
+      - JWT_SECRET
+      - JWT_EXPIRES_IN
     depends_on:
       db:
         condition: service_healthy
