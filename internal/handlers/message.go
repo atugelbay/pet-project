@@ -40,7 +40,7 @@ func ListMessages(db *pgxpool.Pool) http.HandlerFunc {
 		defer rows.Close()
 
 		//Сканируем результаты
-		var msgs []models.Message
+		msgs := make([]models.Message, 0)
 		for rows.Next() {
 			var m models.Message
 			if err := rows.Scan(&m.ID, &m.ChatID, &m.SenderID, &m.Content, &m.CreatedAt); err != nil {

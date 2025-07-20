@@ -77,7 +77,7 @@ func ListPosts(db *pgxpool.Pool) http.HandlerFunc {
 		defer rows.Close()
 
 		//Скаинруем строки в срез
-		var posts []models.Post
+		posts := make([]models.Post, 0)
 		for rows.Next() {
 			var p models.Post
 			if err := rows.Scan(

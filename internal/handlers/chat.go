@@ -23,7 +23,7 @@ func ListChats(db *pgxpool.Pool) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var chats []models.Chat
+		chats := make([]models.Chat, 0)
 		for rows.Next() {
 			var c models.Chat
 			if err := rows.Scan(&c.ID, &c.Title, &c.IsGroup); err != nil {

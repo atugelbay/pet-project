@@ -50,7 +50,7 @@ func main() {
 	log.Println("Connected to Redis")
 
 	//server
-	r := router.NewRouter(dbpool, rdb)
+	r := router.NewRouter(dbpool, rdb, cfg.JWTSecret, cfg.JWTExpiresIn)
 
 	addr := ":" + port
 	log.Printf("Server listening on %s", addr)
