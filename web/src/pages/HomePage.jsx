@@ -12,6 +12,9 @@ export default function HomePage() {
           <li><Link to="/profile">Профиль</Link></li>
         </ul>
       </nav>
+      <div className="bg-blue-500 text-white p-4 rounded">
+  Tailwind работает! 🎉
+</div>
     </div>
   )
 }
