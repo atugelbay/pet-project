@@ -5,21 +5,28 @@ import HomePage from './pages/HomePage'
 import ChatPage from './pages/ChatPage'
 import ChatListPage from './pages/ChatListPage'
 import FeedPage from './pages/FeedPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+
         {/* Корневая страница */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<ProtectedRoute> <HomePage /> </ProtectedRoute>} />
 
         {/* Список чатов */}
-        <Route path="chats" element={<ChatListPage />} />
+        <Route path="chats" element={<ProtectedRoute> <ChatListPage /> </ProtectedRoute>} />
         {/* Страница конкретного чата */}
-        <Route path="chats/:chatID" element={<ChatPage />} />
+        <Route path="chats/:chatID" element={ <ProtectedRoute> <ChatPage /> </ProtectedRoute>} />
 
         {/* Лента постов */}
-        <Route path="posts" element={<FeedPage />} />
+        <Route path="posts" element={ <ProtectedRoute> <FeedPage /> </ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

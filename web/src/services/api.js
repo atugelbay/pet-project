@@ -2,15 +2,35 @@ export const API_BASE = import.meta.env.VITE_API_URL
 export const WS_BASE  = API_BASE.replace(/^http/, 'ws')
 
 async function request(path, options = {}) {
+const token = localStorage.getItem('token')
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: 'Bearer ' + token })
+  }
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options
+     ...options,
+
+    headers
   })
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`API ${res.status} ${res.statusText}: ${text}`)
   }
   return res.status !== 204 ? res.json() : null
+}
+
+export function register({ name, password }) {
+  return request('/register', {
+    method: 'POST',
+    body: JSON.stringify({ name, password })
+  })
+}
+
+export function login({ name, password }) {
+  return request('/login', {
+    method: 'POST',
+    body: JSON.stringify({ name, password })
+  })
 }
 
 export function createUser(name) {
