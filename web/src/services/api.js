@@ -33,6 +33,27 @@ export function login({ name, password }) {
   })
 }
 
+// вернуть текущий профиль
+export async function getProfile() {
+  return request("/profile");
+}
+
+// обновить имя
+export async function updateProfile(name) {
+  return request("/profile", {
+    method: "PUT",
+    body: JSON.stringify({ name }),
+  });
+}
+
+// сменить пароль
+export async function changePassword(current_password, new_password) {
+  return request("/profile/password", {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  });
+}
+
 export function createUser(name) {
   return request('/users', {
     method: 'POST',

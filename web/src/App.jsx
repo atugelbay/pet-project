@@ -3,11 +3,14 @@ import { Routes, Route, BrowserRouter } from 'react-router-dom'
 
 import HomePage from './pages/HomePage'
 import ChatPage from './pages/ChatPage'
+import ProfilePage from './pages/ProfilePage'
+import ProfileEditPage from './pages/ProfileEditPage'
 import ChatListPage from './pages/ChatListPage'
 import FeedPage from './pages/FeedPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ProtectedRoute from './components/ProtectedRoute'
+
 
 export default function App() {
   return (
@@ -19,7 +22,8 @@ export default function App() {
 
         {/* Корневая страница */}
         <Route path="/" element={<ProtectedRoute> <HomePage /> </ProtectedRoute>} />
-
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} /> 
         {/* Список чатов */}
         <Route path="chats" element={<ProtectedRoute> <ChatListPage /> </ProtectedRoute>} />
         {/* Страница конкретного чата */}

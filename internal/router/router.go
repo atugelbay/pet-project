@@ -34,6 +34,11 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.JWTAuth(jwtSecret))
 
+		//profile
+		r.Get("/profile", handlers.GetProfileHandler(db))
+		r.Put("/profile", handlers.UpdateProfileHandler(db))
+		//r.Post("/profile/password", handlers.ChangePasswordHandler(db))
+
 		r.Get("/", handlers.Index)
 		//REST
 		r.Post("/users", handlers.CreateUser(db))

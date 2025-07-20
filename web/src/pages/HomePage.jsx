@@ -9,6 +9,7 @@ export default function HomePage() {
         <ul>
           <li><Link to="/chats">Чаты</Link></li>
           <li><Link to="/posts">Лента постов</Link></li>
+          <li><Link to="/profile">Профиль</Link></li>
         </ul>
       </nav>
     </div>
