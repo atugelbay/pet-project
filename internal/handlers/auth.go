@@ -102,3 +102,21 @@ func Login(db *pgxpool.Pool, jwtSecret string, jwtExp time.Duration) http.Handle
 		json.NewEncoder(w).Encode(map[string]string{"token": token})
 	}
 }
+
+// POST /logout — сбрасываем cookie с рефрешем
+func LogoutHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// если refresh‑токен был в cookie:
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   true, // в проде
+			SameSite: http.SameSiteLaxMode,
+		})
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"logged_out"}`))
+	}
+}

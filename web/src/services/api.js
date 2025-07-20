@@ -33,6 +33,22 @@ export function login({ name, password }) {
   })
 }
 
+// сброс cookie на сервере и очистка localStorage
+export async function logout() {
+  try {
+    await request("/logout", { method: "POST" });
+  } catch (e) {
+    // Если неавторизован — считаем, что токен уже сгорел, и всё равно выходим
+    if (e.status === 401) {
+      return;
+    }
+    // Во всех остальных ошибках бросаем дальше
+    throw e;
+  }
+}
+
+
+
 // вернуть текущий профиль
 export async function getProfile() {
   return request("/profile");

@@ -29,6 +29,7 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 	// Публичные (не требуют токена)
 	r.Post("/register", handlers.Register(db, jwtSecret, jwtExp))
 	r.Post("/login", handlers.Login(db, jwtSecret, jwtExp))
+	r.Post("/logout", handlers.LogoutHandler())
 
 	// защищенный маршрут
 	r.Group(func(r chi.Router) {
@@ -37,6 +38,7 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 		//profile
 		r.Get("/profile", handlers.GetProfileHandler(db))
 		r.Put("/profile", handlers.UpdateProfileHandler(db))
+
 		//r.Post("/profile/password", handlers.ChangePasswordHandler(db))
 
 		r.Get("/", handlers.Index)
