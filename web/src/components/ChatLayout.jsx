@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams} from "react-router-dom";
 import { listChats, createChat } from "@/services/api";
+import ChatCreateModal from "@/components/ChatCreateModal";
 
 export default function ChatLayout() {
   const [chats, setChats]   = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setModal] = useState(false);
   const { id: selectedId  }             = useParams();
   const navigate           = useNavigate();
   
@@ -28,43 +30,15 @@ export default function ChatLayout() {
     return () => clearInterval(iv);
   }, []);
 
+  const handleSuccess = chat => {
+    fetchChats();
+    navigate(`/chats/${chat.id}`);
+    setModal(false);
+  };
+
   
-const onCreate = async () => {
-  // Спрашиваем тип
-  const isGroup = window.confirm(
-    "Нажмите ОК для группового чата, Отмена — для приватного."
-  );
-
-  let title = "";
-  let members = [];
-
-   if (isGroup) {
-      title = window.prompt("Название группового чата:");
-      if (!title) return;
-
-      const raw = window.prompt("ID участников через запятую:");
-      members = raw
-        .split(",")
-        .map(s => Number(s.trim()))
-        .filter(n => !isNaN(n));
-    } else {
-      const other = Number(window.prompt("ID собеседника:"));
-      if (isNaN(other)) return;
-      members = [other];
-    }
-
-  try {
-      const newChat = await createChat({ title, is_group: isGroup, members });
-      // сразу подтягиваем корректный title из back‑end
-      await fetchChats();
-      navigate(`/chats/${newChat.id}`);
-    } catch (err) {
-      console.error("createChat error:", err);
-      alert("Не удалось создать чат");
-    }
-};
-
-    const current = chats.find(c => String(c.id) === selectedId)
+  const onCreate = () => { setModal(true); };
+  const current = chats.find(c => String(c.id) === selectedId)
 
   return (
     <div className="flex h-screen">
@@ -119,9 +93,15 @@ const onCreate = async () => {
           {/* можно добавить кнопку «назад» */}
         </header>
         <main className="flex-1 overflow-y-auto">
-          <Outlet />
+          <Outlet context={{ onCreate }}/>
         </main>
       </div>
+      {/* Модалка создания чата */}
+      <ChatCreateModal
+        isOpen={isModalOpen}
+        onClose={() => setModal(false)}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }

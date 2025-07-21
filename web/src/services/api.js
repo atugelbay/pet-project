@@ -2,21 +2,47 @@ export const API_BASE = import.meta.env.VITE_API_URL
 export const WS_BASE  = API_BASE.replace(/^http/, 'ws')
 
 async function request(path, options = {}) {
-const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: 'Bearer ' + token })
-  }
-  const res = await fetch(`${API_BASE}${path}`, {
-     ...options,
+    ...(token && { Authorization: 'Bearer ' + token }),
+  };
 
-    headers
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`API ${res.status} ${res.statusText}: ${text}`)
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+  });
+
+  // 1) Читаем тело один раз
+  const text = await res.text();
+
+  // 2) Ловим «неавторизованность»
+  const low = text.toLowerCase();
+  if (
+    res.status === 401 ||
+    (res.status === 404 && low.includes('unauthorized'))
+  ) {
+    localStorage.removeItem('token');
+    window.location.pathname = '/login';
+    throw new Error('Unauthorized');
   }
-  return res.status !== 204 ? res.json() : null
+
+  // 3) Другие ошибки
+  if (!res.ok) {
+    throw new Error(`API ${res.status} ${res.statusText}: ${text}`);
+  }
+
+  // 4) Если тело пустое (204 No Content), возвращаем null
+  if (res.status === 204 || !text) {
+    return null;
+  }
+
+  // 5) Парсим JSON из единственной прочитанной строки
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Invalid JSON: ${e.message}`);
+  }
 }
 
 export function register({ name, password }) {
@@ -31,6 +57,10 @@ export function login({ name, password }) {
     method: 'POST',
     body: JSON.stringify({ name, password })
   })
+}
+
+export function listUsers() {
+  return request('/users');
 }
 
 // сброс cookie на сервере и очистка localStorage

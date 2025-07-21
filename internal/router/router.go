@@ -46,6 +46,7 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 		r.Get("/", handlers.Index)
 		//REST
 		r.Post("/users", handlers.CreateUser(db))
+		r.Get("/users", handlers.ListUsers(db))
 
 		//чат
 		r.Get("/chats", handlers.ListChats(db))

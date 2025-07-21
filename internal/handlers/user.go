@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"pet-project/internal/models"
@@ -35,5 +36,34 @@ func CreateUser(db *pgxpool.Pool) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(u)
+	}
+}
+
+func ListUsers(db *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.Query(r.Context(), `
+      SELECT id, name
+      FROM users
+      ORDER BY name
+    `)
+		if err != nil {
+			log.Printf("[ListUsers] query error: %v", err)
+			http.Error(w, "db error", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var out []models.User
+		for rows.Next() {
+			var u models.User
+			if err := rows.Scan(&u.ID, &u.Name); err != nil {
+				log.Printf("[ListUsers] scan error: %v", err)
+				continue
+			}
+			out = append(out, u)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(out)
 	}
 }

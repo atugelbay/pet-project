@@ -81,7 +81,7 @@ func CreateChat(db *pgxpool.Pool) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// 1) Получаем userID из контекста (JWTAuth уже сработал)
-		userID, ok := middleware.FromContext(r.Context())
+		me, ok := middleware.FromContext(r.Context())
 		if !ok {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
@@ -93,12 +93,37 @@ func CreateChat(db *pgxpool.Pool) http.HandlerFunc {
 			http.Error(w, "invalid JSON", http.StatusBadRequest)
 			return
 		}
+
+		if !req.IsGroup && len(req.Members) == 1 {
+			other := req.Members[0]
+			var existingID int
+			// ищем чат, где эти двое и больше никого
+			err := db.QueryRow(r.Context(), `
+        SELECT c.id
+        FROM chats c
+        JOIN chat_members cm ON cm.chat_id = c.id
+        WHERE c.is_group = FALSE
+        GROUP BY c.id
+        HAVING bool_and(cm.user_id IN ($1,$2)) AND COUNT(*) = 2
+      `, me, other).Scan(&existingID)
+			if err == nil {
+				// нашли — отдаем его
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(models.Chat{
+					ID:      existingID,
+					IsGroup: false,
+					Title:   "",
+					Members: []int{me, other},
+				})
+				return
+			}
+		}
 		// Добавляем создателя в список участников, если его там ещё нет
 		membersMap := map[int]struct{}{}
 		for _, u := range req.Members {
 			membersMap[u] = struct{}{}
 		}
-		membersMap[userID] = struct{}{}
+		membersMap[me] = struct{}{}
 
 		if len(membersMap) <= 1 && !req.IsGroup {
 			http.Error(w, "members required", http.StatusBadRequest)
