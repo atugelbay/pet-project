@@ -18,11 +18,12 @@ type Chat struct {
 
 // Message — структура для таблицы messages
 type Message struct {
-	ID        int       `json:"id"`
-	ChatID    int       `json:"chat_id"`
-	SenderID  int       `json:"sender_id"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
+	ID         int       `json:"id"`
+	ChatID     int       `json:"chat_id"`
+	SenderID   int       `json:"sender_id"`
+	SenderName string    `json:"sender_name"`
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 // Post — структура для таблицы posts

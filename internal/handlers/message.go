@@ -27,13 +27,20 @@ func ListMessages(db *pgxpool.Pool) http.HandlerFunc {
 		//Делаем запрос к БД
 		rows, err := db.Query(
 			r.Context(),
-			`SELECT id, chat_id, sender_id, content, created_at
-             FROM messages
-             WHERE chat_id = $1
-             ORDER BY created_at ASC`,
-			chatID,
-		)
+			`SELECT 
+				m.id,
+				m.chat_id,
+				m.sender_id,
+				u.name       AS sender_name,
+				m.content,
+				m.created_at
+			FROM messages m
+			JOIN users u ON u.id = m.sender_id
+			WHERE m.chat_id = $1
+			ORDER BY m.created_at ASC
+			`, chatID)
 		if err != nil {
+			log.Printf("[ListMessages] query error: %v", err)
 			http.Error(w, "db error", http.StatusInternalServerError)
 			return
 		}
@@ -43,20 +50,24 @@ func ListMessages(db *pgxpool.Pool) http.HandlerFunc {
 		msgs := make([]models.Message, 0)
 		for rows.Next() {
 			var m models.Message
-			if err := rows.Scan(&m.ID, &m.ChatID, &m.SenderID, &m.Content, &m.CreatedAt); err != nil {
+			if err := rows.Scan(&m.ID, &m.ChatID, &m.SenderID, &m.SenderName, &m.Content, &m.CreatedAt); err != nil {
+				log.Printf("[ListMessages] scan error: %v", err)
 				http.Error(w, "scan error", http.StatusInternalServerError)
 				return
 			}
 			msgs = append(msgs, m)
 		}
 		if rows.Err() != nil {
+			log.Printf("[ListMessages] rows.Err: %v", rows.Err())
 			http.Error(w, "rows error", http.StatusInternalServerError)
 			return
 		}
 
 		//Возвращаем JSON‑массив сообщений
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(msgs)
+		if err := json.NewEncoder(w).Encode(msgs); err != nil {
+			log.Printf("[ListMessages] encode error: %v", err)
+		}
 	}
 }
 

@@ -1,36 +1,61 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate }                 from "react-router-dom";
-import { listMessages, sendMessage, WS_BASE }      from "@/services/api";
+import { useParams, useNavigate }              from "react-router-dom";
+import {
+  listMessages,
+  sendMessage,
+  WS_BASE,
+  getProfile
+} from "@/services/api";
+import Loader from "@/components/Loader";
 
 export default function ChatPage() {
-  const { chatID } = useParams();
-  const navigate   = useNavigate();
+  const { chatID }        = useParams();
+  const navigate          = useNavigate();
 
-  // 0) Состояние
-  const [msgs,    setMsgs]    = useState([]);    // array
-  const [text,    setText]    = useState("");
+  // профиль текущего юзера
+  const [profile, setProfile] = useState(null);
+  // сообщения, текст инпута, статус загрузки и ошибки
+  const [msgs, setMsgs]       = useState([]);
+  const [text, setText]       = useState("");
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
-  const wsRef                  = useRef(null);
-  const boxRef                 = useRef(null);
+  const [error, setError]     = useState(null);
 
-  // 1) Загрузка истории при смене chatID
+  const wsRef  = useRef(null);
+  const boxRef = useRef(null);
+
+  // 0) Загрузим профиль, чтобы получить profile.id → userId
   useEffect(() => {
+    getProfile()
+      .then(u => setProfile(u))
+      .catch(() => {
+        // если нет профиля — редирект на логин
+        navigate("/login");
+      });
+  }, []);
+
+  const userId = profile?.id;
+
+  // 1) Загрузка истории
+  useEffect(() => {
+    if (!userId) return;
     setLoading(true);
     setError(null);
+
     listMessages(chatID)
       .then(data => setMsgs(Array.isArray(data) ? data : []))
       .catch(err => {
         console.error("listMessages error", err);
         setError(err.message || "Ошибка загрузки");
-        setMsgs([]);
       })
       .finally(() => setLoading(false));
-  }, [chatID]);
+  }, [chatID, userId]);
 
-  // 2) WebSocket‑подписка
+  // 2) WS‑подписка (отправляем токен в query)
   useEffect(() => {
-    const ws = new WebSocket(`${WS_BASE}/ws/${chatID}`);
+    if (!userId) return;
+    const token = localStorage.getItem("token");
+    const wsUrl = `${WS_BASE}/ws/${chatID}?token=${token}`;
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen    = () => console.log("WS connected to chat", chatID);
@@ -40,34 +65,43 @@ export default function ChatPage() {
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
-      // Прокрутка вниз
+      // автоскролл
       setTimeout(() => {
-        if (boxRef.current) {
-          boxRef.current.scrollTo({ top: boxRef.current.scrollHeight, behavior: "smooth" });
-        }
+        boxRef.current?.scrollTo({
+          top: boxRef.current.scrollHeight,
+          behavior: "smooth"
+        });
       }, 50);
     };
     ws.onerror = e => console.warn("WS error:", e);
     ws.onclose = () => console.log("WS closed for chat", chatID);
 
     return () => ws.close();
-  }, [chatID]);
+  }, [chatID, userId]);
 
-  // 3) Отправка сообщения
+  // 3) Отправка
   const onSend = async () => {
     if (!text.trim()) return;
     try {
-      await sendMessage(chatID, 1, text);
+      await sendMessage(chatID, userId, text);
       setText("");
-      // не добавляем локально, ждем WS
     } catch (err) {
       console.error("sendMessage error", err);
       alert("Не удалось отправить сообщение");
     }
   };
 
-  // 4) Error
-
+  // 4) Loading / Error
+  if (!profile) {
+    return <Loader />; // ждём, пока профиль придёт
+  }
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
   if (error) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center space-y-4">
@@ -82,7 +116,7 @@ export default function ChatPage() {
     );
   }
 
-  // 5) Основной UI: сообщения + ввод
+  // 5) UI
   return (
     <div className="flex flex-col h-full">
       {/* Сообщения */}
@@ -93,24 +127,38 @@ export default function ChatPage() {
         {msgs.length === 0 ? (
           <p className="text-gray-500">Сообщений пока нет.</p>
         ) : (
-          msgs.map(m => (
-            <div
-              key={m.id}
-              className={`flex ${
-                m.sender_id === 1 ? "justify-end" : "justify-start"
-              }`}
-            >
+          msgs.map(m => {
+            const mine = m.sender_id === userId;
+            return (
               <div
-                className={`max-w-[60%] p-3 rounded-2xl ${
-                  m.sender_id === 1
-                    ? "bg-primary text-white"
-                    : "bg-white dark:bg-gray-700 text-gray-900"
-                }`}
+                key={m.id}
+                className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
               >
-                {m.content}
+                {/* Имя + время */}
+                <div className="text-xs text-gray-400 mb-1">
+                  <span className="font-medium">
+                    {mine ? "Вы" : m.sender_name}
+                  </span>{" "}
+                  <span>
+                    {new Date(m.created_at).toLocaleTimeString([], {
+                      hour:   "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                {/* Пузырь */}
+                <div
+                  className={`max-w-[60%] p-3 rounded-2xl ${
+                    mine
+                      ? "bg-primary text-white"
+                      : "bg-white dark:bg-gray-700 text-gray-900"
+                  }`}
+                >
+                  {m.content}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -129,7 +177,7 @@ export default function ChatPage() {
             onClick={onSend}
             className="p-2 text-primary hover:text-primary-dark"
           >
-            ▶ 
+            ▶
           </button>
         </div>
       </footer>
