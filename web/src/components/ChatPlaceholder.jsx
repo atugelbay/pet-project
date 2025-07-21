@@ -6,7 +6,7 @@ export default function ChatPlaceholder() {
   const { onCreate } = useOutletContext() || {};
   
   return (
-    <div className="flex-1 flex flex-col items-center justify-center space-y-6 text-gray-500 dark:text-gray-400">
+    <div className="m-auto flex-1 flex flex-col items-center space-y-6 text-gray-500 dark:text-gray-400">
       {/* Иконка чата */}
       <svg
         className="w-20 h-20 opacity-50"
@@ -24,20 +24,18 @@ export default function ChatPlaceholder() {
 
       {/* Заголовок */}
       <p className="text-2xl font-semibold">
-        Выберите чат слева
+        Выберите чат слева или
       </p>
 
       {/* Подсказка */}
-      <p className="max-w-xs text-center text-sm">
-        Здесь будет содержимое вашего чата. 
-        Выберите существующий диалог или&nbsp;
+      <p className="max-w-xs text-center text-md ">
         <button
           type="button"
           onClick={onCreate}
-          className="text-primary font-medium hover:underline focus:outline-none"
+          className="bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-500"
         >
           создайте новый чат
-        </button>.
+        </button>
       </p>
     </div>
   );
