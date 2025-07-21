@@ -15,7 +15,7 @@ export default function LoginPage() {
       const { token } = await login({ name, password })
       localStorage.setItem('token', token)
       // После логина идём в список чатов
-      navigate('/')
+      navigate('/chats')
     } catch (err) {
       setError(err.message)
     }

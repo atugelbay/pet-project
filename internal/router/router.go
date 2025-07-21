@@ -17,8 +17,9 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 	r := chi.NewRouter()
 
 	//CORS
+	//http://localhost:5173
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"}, // фронт на Vite
+		AllowedOrigins:   []string{"*"}, // фронт на Vite
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Link"},
@@ -30,6 +31,7 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 	r.Post("/register", handlers.Register(db, jwtSecret, jwtExp))
 	r.Post("/login", handlers.Login(db, jwtSecret, jwtExp))
 	r.Post("/logout", handlers.LogoutHandler())
+	r.Get("/ws/{chatID}", handlers.WSHandler(rdb))
 
 	// защищенный маршрут
 	r.Group(func(r chi.Router) {
@@ -52,8 +54,6 @@ func NewRouter(db *pgxpool.Pool, rdb *redis.Client, jwtSecret string, jwtExp tim
 		//сообщения
 		r.Get("/chats/{chatID}/messages", handlers.ListMessages(db))
 		r.Post("/chats/{chatID}/messages", handlers.SendMessage(db, rdb))
-
-		r.Get("/ws/{chatID}", handlers.WSHandler(rdb))
 
 		//посты
 		r.Post("/posts", handlers.CreatePost(db))

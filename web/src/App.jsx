@@ -1,6 +1,7 @@
 import React from 'react'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
-
+import Layout from "./components/Layout";
+import ChatLayout from "./components/ChatLayout";
 import HomePage from './pages/HomePage'
 import ChatPage from './pages/ChatPage'
 import ProfilePage from './pages/ProfilePage'
@@ -16,21 +17,26 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route element={<Layout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
 
-        {/* Корневая страница */}
-        <Route path="/" element={<ProtectedRoute> <HomePage /> </ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} /> 
-        {/* Список чатов */}
-        <Route path="chats" element={<ProtectedRoute> <ChatListPage /> </ProtectedRoute>} />
-        {/* Страница конкретного чата */}
-        <Route path="chats/:chatID" element={ <ProtectedRoute> <ChatPage /> </ProtectedRoute>} />
+          {/* Корневая страница */} 
+          <Route path="/" element={<ProtectedRoute> <HomePage /> </ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} /> 
+          
+          <Route path="chats" element={<ChatLayout />}>
+            {/* Список чатов */}
+            <Route path="chats" element={<ProtectedRoute> <ChatListPage /> </ProtectedRoute>} />
+            {/* Страница конкретного чата */}
+            <Route path=":chatID" element={ <ProtectedRoute> <ChatPage /> </ProtectedRoute>} />
+          </Route>
 
-        {/* Лента постов */}
-        <Route path="posts" element={ <ProtectedRoute> <FeedPage /> </ProtectedRoute>} />
+          {/* Лента постов */}
+          <Route path="posts" element={ <ProtectedRoute> <FeedPage /> </ProtectedRoute>} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

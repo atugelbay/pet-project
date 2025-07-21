@@ -81,11 +81,16 @@ export function listChats() {
   return request('/chats')
 }
 
-export function createChat({ title, is_group, members }) {
-  return request('/chats', {
-    method: 'POST',
-    body: JSON.stringify({ title, is_group, members })
-  })
+export function createChat({ title = "", is_group, user_ids }) {
+  console.log("createChat params:", { title, is_group, user_ids });
+  return request("/chats", {
+    method: "POST",
+    body: JSON.stringify({
+      title,
+      is_group,
+      members: user_ids, 
+    }),
+  });
 }
 
 export function listMessages(chatID) {
