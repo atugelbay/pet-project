@@ -118,11 +118,11 @@ export default function ChatPage() {
 
   // 5) UI
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       {/* Сообщения */}
       <div
         ref={boxRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-gray-800"
+        className="flex-1 overflow-y-auto p-6 space-y-4 flex-col bg-gray-50 dark:bg-gray-800"
       >
         {msgs.length === 0 ? (
           <p className="text-gray-500">Сообщений пока нет.</p>
@@ -148,10 +148,10 @@ export default function ChatPage() {
                 </div>
                 {/* Пузырь */}
                 <div
-                  className={`max-w-[60%] p-3 rounded-2xl ${
+                  className={`max-w-[60%] break-words p-3 rounded-2xl ${
                     mine
                       ? "bg-primary text-white"
-                      : "bg-white dark:bg-gray-700 text-gray-900"
+                      : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50"
                   }`}
                 >
                   {m.content}

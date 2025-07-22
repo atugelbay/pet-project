@@ -124,7 +124,7 @@ export default function AppLayout() {
           </nav>
         </header>
 
-        <main className="flex-1 overflow-y-auto flex">
+        <main className="flex-1 overflow-y-auto flex text-base md:text-[18px]">
           <Outlet context={{ onCreate }} />
         </main>
       </div>
