@@ -148,10 +148,16 @@ export default function ChatPage() {
                 </div>
                 {/* Пузырь */}
                 <div
-                  className={`max-w-[60%] break-words p-3 rounded-2xl ${
+                  className={`
+                    max-w-[60%] break-words px-4 py-2 rounded-2xl
+                    bg-glass-light dark:bg-glass-dark
+                    backdrop-glass-xs
+                    border border-white/20 dark:border-gray-700
+                    text-gray-900 dark:text-gray-100
+                    transition ${
                     mine
-                      ? "bg-primary text-white"
-                      : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50"
+                      ? "bg-primary/75 text-white"
+                      : "bg-primary text-white"
                   }`}
                 >
                   {m.content}

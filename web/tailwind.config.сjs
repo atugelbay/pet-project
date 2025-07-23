@@ -1,15 +1,36 @@
-module.exports = {
+import plugin from 'tailwindcss/plugin';
+
+export default {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}"
   ],
-  theme: {
+ theme: {
     extend: {
       colors: {
-        primary: "#6366f1",
-        accent:  "#F59E0B",
+        glass: {
+          light: 'rgba(255,255,255,0.15)',
+          dark:  'rgba( 30, 30, 30,0.15)',
+        }
       },
-    },
+      backdropBlur: {
+        xs: '4px',
+        sm: '8px',
+        md: '12px',
+        lg: '20px',
+      }
+    }
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        // Точный синоним для backdrop-blur:
+        '.backdrop-glass-xs': { 'backdrop-filter': 'blur(4px)' },
+        '.backdrop-glass-sm': { 'backdrop-filter': 'blur(8px)' },
+        '.backdrop-glass-md': { 'backdrop-filter': 'blur(12px)' },
+        '.backdrop-glass-lg': { 'backdrop-filter': 'blur(20px)' },
+      });
+    })
+  ]
 }

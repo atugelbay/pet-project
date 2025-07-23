@@ -52,10 +52,25 @@ export default function UsersSidebar() {
   };
 
   return (
-    <aside className="w-80 bg-white dark:bg-gray-900 border-r dark:border-gray-700 flex flex-col">
+    <aside
+      className={`
+        group h-full flex flex-col
+        w-16 hover:w-80
+        bg-glass-light dark:bg-glass-dark
+        backdrop-glass
+        border-r border-white/20 dark:border-gray-700
+        transition-all duration-300 ease-in-out
+        overflow-hidden
+      `}
+    >
       {/* Заголовок */}
       <div className="px-4 py-3">
-        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+        <h2 
+            className={`
+            font-bold text-lg text-gray-700 dark:text-gray-200
+            transition-opacity duration-300
+            opacity-0 group-hover:opacity-100
+          `}>
           Пользователи
         </h2>
       </div>
@@ -66,19 +81,42 @@ export default function UsersSidebar() {
           value={q}
           onChange={e => setQ(e.target.value)}
           placeholder="Поиск…"
-          className="w-full px-3 py-2 rounded bg-gray-100 dark:bg-gray-700 focus:outline-none"
+          className={`
+            w-full px-3 py-2 rounded bg-white/50 dark:bg-gray-800
+            focus:outline-none backdrop-blur-sm
+            transition-opacity duration-300
+            opacity-0 group-hover:opacity-100
+          `}
         />
       </div>
 
       {/* Список */}
-      <div className="flex-1 overflow-y-auto px-2 space-y-1">
+        <div className="flex-1 overflow-hidden px-2 space-y-1">
         {filtered.map(u => (
           <button
             key={u.id}
             onClick={() => handleSelect(u.id)}
-            className="w-full text-left px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="
+              w-full flex items-center px-3 py-2 rounded
+              hover:bg-white/20 dark:hover:bg-gray-700
+              transition
+            "
           >
-            {u.name}
+            {/* аватарка с initial */}
+            <div className="
+              flex-shrink-0
+              w-8 h-8 aspect-square
+              rounded-full overflow-hidden
+              bg-gray-300 dark:bg-gray-600
+              flex items-center justify-center
+              text-sm text-white
+              mr-3
+            ">
+              {u.name.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-sm text-gray-800 dark:text-gray-100">
+              {u.name}
+            </span>
           </button>
         ))}
       </div>
@@ -87,8 +125,11 @@ export default function UsersSidebar() {
       <div className="px-4 py-3 border-t dark:border-gray-700">
         <button
           onClick={handleLogout}
-          className="w-full text-left text-red-500 hover:underline"
-        >
+          className={`
+            w-full text-left text-red-500 hover:underline
+            transition-opacity duration-300
+            opacity-0 group-hover:opacity-100 
+          `}>
           Выйти
         </button>
       </div>

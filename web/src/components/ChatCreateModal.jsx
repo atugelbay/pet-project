@@ -65,7 +65,16 @@ export default function ChatCreateModal({ isOpen, onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-20">
       <form
         onSubmit={handleSubmit}
-        className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-lg p-6 space-y-4"
+        className="
+        bg-glass-light dark:bg-glass-dark
+        backdrop-glass-lg
+        rounded-lg
+        border border-white/20 dark:border-gray-700
+        w-full
+        max-w-lg
+        p-6 space-y-4
+        shadow-lg
+        "
       >
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
