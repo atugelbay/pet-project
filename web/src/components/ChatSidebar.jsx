@@ -10,8 +10,8 @@ export default function ChatSidebar({ onCreate }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch() {
-      setLoading(true);
+    setLoading(true);
+      async function fetch() {
       try { setChats(await listChats()); }
       catch (e) { console.error(e); }
       finally { setLoading(false); }

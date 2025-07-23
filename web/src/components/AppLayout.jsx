@@ -6,6 +6,7 @@ import { useState } from 'react';
 import ChatSidebar from '@/components/ChatSidebar';
 import PostsSidebar from '@/components/PostsSidebar';
 import UsersSidebar  from '@/components/UsersSidebar';
+import BubblesBackground from '@/components/BubblesBackground';
 
 
 export default function AppLayout() {
@@ -26,7 +27,8 @@ export default function AppLayout() {
   const isChatsRoute = location.pathname.startsWith('/chats');
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
+      <BubblesBackground count={25} />
       {/* Sidebar */}
      {isChats && <ChatSidebar onCreate={onCreate} collapsed={sidebarCollapsed} />}
      {isPosts && <PostsSidebar />}

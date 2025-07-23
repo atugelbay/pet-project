@@ -1,3 +1,4 @@
+// web/src/pages/ChatPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate }              from "react-router-dom";
 import {
@@ -28,10 +29,9 @@ export default function ChatPage() {
     getProfile()
       .then(u => setProfile(u))
       .catch(() => {
-        // если нет профиля — редирект на логин
         navigate("/login");
       });
-  }, []);
+  }, [navigate]);
 
   const userId = profile?.id;
 
@@ -50,12 +50,11 @@ export default function ChatPage() {
       .finally(() => setLoading(false));
   }, [chatID, userId]);
 
-  // 2) WS‑подписка (отправляем токен в query)
+  // 2) WS‑подписка
   useEffect(() => {
     if (!userId) return;
     const token = localStorage.getItem("token");
-    const wsUrl = `${WS_BASE}/ws/${chatID}?token=${token}`;
-    const ws = new WebSocket(wsUrl);
+    const ws = new WebSocket(`${WS_BASE}/ws/${chatID}?token=${token}`);
     wsRef.current = ws;
 
     ws.onopen    = () => console.log("WS connected to chat", chatID);
@@ -65,7 +64,6 @@ export default function ChatPage() {
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
-      // автоскролл
       setTimeout(() => {
         boxRef.current?.scrollTo({
           top: boxRef.current.scrollHeight,
@@ -93,7 +91,7 @@ export default function ChatPage() {
 
   // 4) Loading / Error
   if (!profile) {
-    return <Loader />; // ждём, пока профиль придёт
+    return <Loader />;
   }
   if (loading) {
     return (
@@ -104,25 +102,30 @@ export default function ChatPage() {
   }
   if (error) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+      <div className="flex-1 flex flex-col items-center justify-center space-y-4 p-6">
         <p className="text-red-500">{error}</p>
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-primary text-white rounded hover:opacity-90"
+          className="px-4 py-2 bg-primary text-white rounded hover:opacity-90 transition"
         >
-          ← Назад к списку
+          ← Назад
         </button>
       </div>
     );
   }
 
-  // 5) UI
+  // 5) UI в glassmorphic стиле
   return (
     <div className="flex flex-col h-full w-full">
+
       {/* Сообщения */}
       <div
         ref={boxRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4 flex-col bg-gray-50 dark:bg-gray-800"
+        className="
+          flex-1 overflow-y-auto p-6 space-y-4
+          bg-glass-light bg-opacity-50 dark:bg-glass-dark dark:bg-opacity-50
+          backdrop-glass-md
+        "
       >
         {msgs.length === 0 ? (
           <p className="text-gray-500">Сообщений пока нет.</p>
@@ -146,19 +149,19 @@ export default function ChatPage() {
                     })}
                   </span>
                 </div>
+
                 {/* Пузырь */}
                 <div
                   className={`
-                    max-w-[60%] break-words px-4 py-2 rounded-2xl
-                    bg-glass-light dark:bg-glass-dark
+                    max-w-[60%] break-words
+                    px-4 py-2 rounded-2xl
                     backdrop-glass-xs
                     border border-white/20 dark:border-gray-700
-                    text-gray-900 dark:text-gray-100
-                    transition ${
-                    mine
-                      ? "bg-primary/75 text-white"
-                      : "bg-primary text-white"
-                  }`}
+                    transition
+                    ${mine
+                      ? "bg-primary/80 text-white"
+                      : "bg-white/30 dark:bg-black/30 text-gray-900 dark:text-gray-100"}
+                  `}
                 >
                   {m.content}
                 </div>
@@ -169,11 +172,23 @@ export default function ChatPage() {
       </div>
 
       {/* Поле ввода */}
-      <footer className="px-6 py-4 border-t bg-white dark:bg-gray-900 dark:border-gray-700">
+      <footer className="
+        px-6 py-4
+        bg-glass-light bg-opacity-50 dark:bg-glass-dark dark:bg-opacity-50
+        backdrop-glass-xs
+        border-t border-white/20 dark:border-gray-700
+      ">
         <div className="flex items-center space-x-2">
           <input
             type="text"
-            className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full focus:outline-none"
+            className="
+              flex-1 px-4 py-2
+              bg-glass-light bg-opacity-70 dark:bg-glass-dark dark:bg-opacity-70
+              backdrop-glass-xs
+              rounded-full focus:outline-none
+              border border-white/20 dark:border-gray-700
+              transition
+            "
             placeholder="Введите сообщение…"
             value={text}
             onChange={e => setText(e.target.value)}
@@ -181,7 +196,10 @@ export default function ChatPage() {
           />
           <button
             onClick={onSend}
-            className="p-2 text-primary hover:text-primary-dark"
+            className="
+              p-2 bg-primary text-white rounded-full
+              hover:bg-primary-dark transition
+            "
           >
             ▶
           </button>

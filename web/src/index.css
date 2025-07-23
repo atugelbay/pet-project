@@ -21,6 +21,30 @@
 }
 }
 
+@keyframes floatXY {
+  0% {
+    transform: translate(0, 0);
+    opacity: var(--o0);
+  }
+  50% {
+    transform: translate(var(--dx), var(--dy));
+    opacity: var(--o5);
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: var(--o0);
+  }
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  animation-name: floatXY;
+  animation-timing-function: linear;           /* постоянная скорость */
+  animation-iteration-count: infinite;
+  pointer-events: none;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
