@@ -1,71 +1,85 @@
 // web/src/pages/FeedPage.jsx
-import React, { useEffect, useState } from 'react'
-import PostForm from '../components/PostForm'
-import PostItem from '../components/PostItem'
-import { listPosts } from '../services/api'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react';
+import { useLocation }                from 'react-router-dom';
+import { listPosts }                  from '@/services/api';
+import Loader                         from '@/components/Loader';
+
+const clubs = {
+  all:   'Все сообщества',
+  go:    'Go Devs',
+  react: 'React Club',
+  js:    'JS Enthusiasts',
+};
 
 export default function FeedPage() {
-  const [posts,   setPosts]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
+  const [posts, setPosts]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-  // 1. Загрузка списка постов при монтировании
+  const location   = useLocation();
+  const params     = new URLSearchParams(location.search);
+  const clubParam  = params.get('club') || 'all';
+  const clubName   = clubs[clubParam] || clubs.all;
+
+  // 1) Загружаем все посты (пока без фильтра)
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
+
     listPosts()
-      .then(data => setPosts(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error('listPosts error', err)
-        setError(err.message || 'Ошибка при загрузке постов')
+      .then(data => {
+        // TODO: здесь можно фильтровать по клубам, когда появится поддержка в бэке
+        setPosts(Array.isArray(data) ? data : []);
       })
-      .finally(() => setLoading(false))
-  }, [])
+      .catch(err => {
+        console.error('listPosts error', err);
+        setError(err.message || 'Не удалось загрузить посты');
+      })
+      .finally(() => setLoading(false));
+  }, [clubParam]); // перезагружаем, когда сменился параметр ?club=
 
-  // 2. Колбэки для CRUD‑операций
-  const handlePostCreated = post => {
-    setPosts(prev => [post, ...prev])
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center space-y-3">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
   }
 
-  const handlePostUpdated = updatedPost => {
-    setPosts(prev =>
-      prev.map(p => (p.id === updatedPost.id ? updatedPost : p))
-    )
-  }
-
-  const handlePostDeleted = id => {
-    setPosts(prev => prev.filter(p => p.id !== id))
-  }
-
-  // 3. UI: индикаторы загрузки/ошибки
-  if (loading) return <p>Загрузка ленты…</p>
-  if (error)   return <p style={{ color: 'red' }}>Ошибка: {error}</p>
-
-  // 4. Основной рендер
   return (
-    <div>
-      <Link to="/" style={{ display: 'block', marginTop: 20 }}>← На главную</Link>
-      <h1>Лента постов</h1>
+    <div className="p-6 space-y-6">
+      {/* Заголовок выбранного клуба */}
+      <h1 className="text-2xl font-semibold">{clubName}</h1>
 
-      {/* Форма создания нового поста */}
-      <PostForm onPostCreated={handlePostCreated} />
-
-      {/* Список постов или сообщение об их отсутствии */}
+      {/* Список постов */}
       {posts.length === 0 ? (
-        <p>Постов пока нет.</p>
+        <p className="text-gray-500">Постов ещё нет.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {posts.map(post => (
-            <PostItem
-              key={post.id}
-              post={post}
-              onUpdated={handlePostUpdated}
-              onDeleted={handlePostDeleted}
-            />
-          ))}
-        </ul>
+        posts.map(post => (
+          <article
+            key={post.id}
+            className="p-4 border rounded-lg bg-white dark:bg-gray-800"
+          >
+            <h2 className="text-lg font-medium mb-2">{post.title}</h2>
+            <p className="text-gray-700 dark:text-gray-200 mb-3">
+              {post.body}
+            </p>
+            <time
+              className="text-xs text-gray-400"
+              dateTime={post.created_at}
+            >
+              {new Date(post.created_at).toLocaleString()}
+            </time>
+          </article>
+        ))
       )}
     </div>
-  )
+  );
 }
